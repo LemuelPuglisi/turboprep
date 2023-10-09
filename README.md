@@ -1,13 +1,28 @@
 # ⚡ Turboprep
 MRI preprocessing / segmentation in < 30s.
 
-## TO-DO list
+## Usage
 
+```bash
+Usage: ./turboprep <image_path> <output_folder> <template_path> [OPTIONS]
+
+Options:
+  -t, --threads <threads>               Threads (default: number of cores)
+  -s, --shrink-factor                   Bias field correction shrink factor (default: 3), see N4BiasFieldCorrection
+  -m, --modality <modality>             Modality {t2,other,md,t1,pd,flair} (default is t1)
+  -r, --registration-type <type>        Registration type {t,r,a} (default is 'a' (affine), see antsRegistrationSyNQuick.sh)
+  --keep                                Keep intermediate files
 ```
-- [ ] add options to the pipeline
-- [ ] add usage / help command
-- [ ] rename outputs / delete intermediate steps
-```
+
+## Installation
+
+`turboprep` script requires the following softwares to be installed:
+
+* [FreeSurfer](https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall) >= v7.4
+* [ANTs](https://github.com/ANTsX/ANTs)
+* [intensity-normalization](https://github.com/jcreinhold/intensity-normalization)
+
+A Docker container will be included in the future. 
 
 ## Pipeline description
 

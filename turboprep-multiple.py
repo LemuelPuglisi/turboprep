@@ -1,5 +1,6 @@
 import os
 import argparse
+import nibabel as nib
 from tqdm import tqdm
 
 NPROC = os.cpu_count()
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     os.remove('temp-output.txt')
 
     #######################################################
-    # Mask extraction and intensity normalization         #
+    # Brain extraction and intensity normalization         #
     #######################################################
 
     for reg_path, seg_path in tqdm(reg_seg_pairs):
@@ -120,3 +121,10 @@ if __name__ == '__main__':
 
         if not keepint:
             os.remove(reg_path)
+
+        smri = nib.load(norm_path)
+        mask = nib.load(mask_path).get_fdata().round()
+        smri_arr = smri.get_fdata()
+        smri_arr[mask == 0] = smri_arr.min()        
+        brain = nib.Nifti1Image(smri_arr, smri.affine, smri.header)
+        nib.save(brain, os.path.join(output_dir, 'brain.nii.gz'))

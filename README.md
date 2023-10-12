@@ -1,19 +1,6 @@
 # ⚡ Turboprep
 MRI preprocessing / segmentation in < 30s.
 
-## Usage
-
-```bash
-Usage: ./turboprep <image_path> <output_folder> <template_path> [OPTIONS]
-
-Options:
-  -t, --threads <threads>               Threads (default: number of cores)
-  -s, --shrink-factor                   Bias field correction shrink factor (default: 3), see N4BiasFieldCorrection
-  -m, --modality <modality>             Modality {t2,other,md,t1,pd,flair} (default is t1)
-  -r, --registration-type <type>        Registration type {t,r,a} (default is 'a' (affine), see antsRegistrationSyNQuick.sh)
-  --keep                                Keep intermediate files
-```
-
 ## Installation
 
 `turboprep` script requires the following softwares to be installed:
@@ -23,6 +10,45 @@ Options:
 * [intensity-normalization](https://github.com/jcreinhold/intensity-normalization)
 
 A Docker container will be included in the future. 
+
+## Usage (one input)
+
+```bash
+=====[ turboprep ]=====
+Usage: /usr/bin/turboprep <image_path> <output_folder> <template_path> [OPTIONS]
+
+Options:
+  -t, --threads <threads>               Threads (default: number of cores)
+  -s, --shrink-factor                   Bias field correction shrink factor (default: 3), see N4BiasFieldCorrection
+  -m, --modality <modality>             Modality {t2,other,md,t1,pd,flair} (default is t1)
+  -r, --registration-type <type>        Registration type {t,r,a} (default is 'a' (affine), see antsRegistrationSyNQuick.sh)
+  --no-bfc                              Skip bias field correction step
+  --keep                                Keep intermediate files
+
+```
+
+## Usage (multiple inputs)
+
+```bash
+usage: turboprep-safe.py [-h] --inputs INPUTS --outputs OUTPUTS --template TEMPLATE [-m MODALITY] [-t THREADS] [-s SHRINK_FACTOR]
+                         [-r REGISTRATION_TYPE] [--no-bfc NO_BFC] [--keep]
+
+options:
+  -h, --help            show this help message and exit
+  --inputs INPUTS       text file where each line is the path of an image to process
+  --outputs OUTPUTS     text file where each line is the path to an output
+  --template TEMPLATE   path of template image
+  -m MODALITY, --modality MODALITY
+                        Modality {t2,other,md,t1,pd,flair} (default is t1)
+  -t THREADS, --threads THREADS
+                        Threads (default: number of cores)
+  -s SHRINK_FACTOR, --shrink-factor SHRINK_FACTOR
+                        Bias field correction shrink factor (default: 3), see N4BiasFieldCorrection
+  -r REGISTRATION_TYPE, --registration-type REGISTRATION_TYPE
+                        Registration type {t,r,a} (default is 'a' (affine), see antsRegistrationSyNQuick.sh)
+  --no-bfc NO_BFC       text file listing the inputs for which to skip bias field correction
+  --keep                Keep intermediate files
+```
 
 ## Pipeline description
 

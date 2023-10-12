@@ -50,6 +50,29 @@ options:
   --keep                Keep intermediate files
 ```
 
+Example of `--inputs` file:
+
+```
+/path/to/images/input-a.nii.gz
+/path/to/images/input-b.nii.gz
+/path/to/images/input-c.nii.gz
+```
+
+Example of `--outputs` file:
+
+```
+/path/to/outputs/input-a/
+/path/to/outputs/input-b/
+/path/to/outputs/input-c/
+```
+
+Example of `--no-bfc` file (skip bias-field correction for `input-a` and `input-c`):
+
+```
+/path/to/images/input-a.nii.gz
+/path/to/images/input-c.nii.gz
+```
+
 ## Pipeline description
 
 | Step n. | Description                        | Algorithm                                                    | Package                   |

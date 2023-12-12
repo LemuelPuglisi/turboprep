@@ -116,7 +116,7 @@ ITK_GET_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$threads
 
 if [ "$no_bias_field_correction" = false ]; then
 
-  # Step 1: Bias field correction
+  # Step 0: Bias field correction
   N4BiasFieldCorrection -d 3 \
                         -i $image_path \
                         -o $output_folder/corrected.nii.gz \
@@ -130,10 +130,15 @@ else
 
 fi
 
+# Step 1: brain stripping
+mri_synthstrip -i $output_folder/corrected.nii.gz \
+               -o $output_folder/skullstrip.nii.gz \
+               --gpu
+
 # Step 2: Affine registration to template space
 antsRegistrationSyNQuick.sh -d 3 \
                             -f $template_path \
-                            -m $output_folder/corrected.nii.gz \
+                            -m $output_folder/skullstrip.nii.gz \
                             -o $output_folder/turboprep_ \
                             -n $threads -t $registration_type
 
@@ -158,6 +163,7 @@ ws-normalize -m $output_folder/mask.nii.gz \
 if [ "$keep" = false ]; then
 
     rm $output_folder/corrected.nii.gz
+    rm $output_folder/skullstrip.nii.gz
     rm $output_folder/turboprep_InverseWarped.nii.gz
     rm $output_folder/turboprep_Warped.nii.gz
     mv $output_folder/turboprep_0GenericAffine.mat $output_folder/affine_transf.mat

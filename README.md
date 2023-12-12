@@ -1,6 +1,8 @@
 # ⚡ Turboprep
 MRI preprocessing / segmentation in < 30s.
 
+> **Update**: adding skull-stripping prior to affine registration to external template for better registration results.
+
 ## Installation
 
 `turboprep` script requires the following softwares to be installed:
@@ -77,9 +79,10 @@ Example of `--no-bfc` file (skip bias-field correction for `input-a` and `input-
 
 | Step n. | Description                        | Algorithm                                                    | Package                   |
 | ------- | ---------------------------------- | ------------------------------------------------------------ | ------------------------- |
-| 1       | Intensity inhomogeneity correction | N4 [1]                                                       | `ANTs`                    |
+| 0       | Intensity inhomogeneity correction | N4 [1]                                                       | `ANTs`                    |
+| 1       | Skull stripping                    | SynthStrip [7]                                               | `FreeSurfer`              |
 | 2       | Affine registration to template    | Symmetric Diffeomorphic Image Registration (just affine registration) [2] | `ANTs`                    |
-| 3       | Segmentation of brain tissues      | SynthSeg [3] (Love it!)                                      | `FreeSurfer`              |
+| 3       | Segmentation of brain tissues      | SynthSeg [3]                                                 | `FreeSurfer`              |
 | 4       | Brain mask extraction              | Thresholding the segmentation                                | `FreeSurfer`              |
 | 5       | Intensity normalization            | WhiteStripe [4]                                              | `intensity-normalization` |
 
@@ -106,4 +109,6 @@ Both algorithms are great, but the overhead of loading the model make their runn
 [5] Iglesias, Juan Eugenio. "A ready-to-use machine learning tool for symmetric multi-modality registration of brain MRI." Scientific Reports 13.1 (2023): 6657.
 
 [6] Hoffmann, M., et al. "SynthMorph: Learning image registration without images." IEEE Trans. Med. Imaging (2021).
+
+[7] Hoopes, Andrew, et al. "SynthStrip: Skull-stripping for any brain image." NeuroImage 260 (2022): 119474.
 ```

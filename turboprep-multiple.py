@@ -66,6 +66,7 @@ if __name__ == '__main__':
 
         outputs_dict[input_path] = {
             'bias_field_correction':    os.path.join(output_path, 'corrected.nii.gz'),
+            'skull_stripping':          os.path.join(output_path, 'skullstrip.nii.gz'),
             'ants_prefix':              os.path.join(output_path, 'turboprep_'),
             'affine_registration':      os.path.join(output_path, 'turboprep_Warped.nii.gz'), 
             'semantic_segmentation':    os.path.join(output_path, 'segm.nii.gz'),
@@ -77,20 +78,17 @@ if __name__ == '__main__':
         if input_path in nbc_list:
             outputs_dict[input_path]['bias_field_correction'] = input_path
 
-    #######################################################
-    # Bias field correction and registration to template  #
-    #######################################################
+    #######################################################################
+    # Bias-field correction + skull stripping + registration to template  #
+    #######################################################################
 
-    print('🚀 Bias-field correction and registration to template')
+    print('🚀 Bias-field correction + skull stripping + registration to template')
 
     for input_path in tqdm(list(outputs_dict.keys())):
-        
-        if input_path == '/media/data/datasets/mri_database/ADNI/subjects/082_S_4224/I1051042.nii.gz':
-            print('skipping file')
-            continue
 
         input_outputs = outputs_dict[input_path]
         corrected_path  = input_outputs['bias_field_correction']
+        skullstrip_path = input_outputs['skull_stripping']
         registered_path = input_outputs['affine_registration']
         registered_pref = input_outputs['ants_prefix']
         brain_path = input_outputs['brain_extraction']
@@ -114,8 +112,17 @@ if __name__ == '__main__':
             del outputs_dict[input_path]
             continue
 
+        os.system(f'mri_synthstrip -i {corrected_path} '
+                  f'-o {skullstrip_path} ' 
+                  f'--gpu > /dev/null')
+        
+        if not os.path.exists(skullstrip_path):
+            print('Skull stripping has failed.')
+            del outputs_dict[input_path]
+            continue
+
         os.system('antsRegistrationSyNQuick.sh -d 3 '
-                  f'-f {template} -m {corrected_path} ' 
+                  f'-f {template} -m {skullstrip_path} ' 
                   f'-o {registered_pref} -n {threads} '
                   f'-t {regtype} > /dev/null')
         
@@ -126,6 +133,7 @@ if __name__ == '__main__':
 
         else:
             if not keepint:
+                os.remove(skullstrip_path)
                 os.remove(registered_pref + 'InverseWarped.nii.gz')
                 if corrected_path != input_path: os.remove(corrected_path)
             os.rename(registered_pref + '0GenericAffine.mat', 

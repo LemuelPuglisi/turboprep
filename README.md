@@ -32,7 +32,7 @@ Options:
 ## Usage (multiple inputs)
 
 ```bash
-usage: turboprep-safe.py [-h] --inputs INPUTS --outputs OUTPUTS --template TEMPLATE [-m MODALITY] [-t THREADS] [-s SHRINK_FACTOR]
+usage: turboprep-multiple.py [-h] --inputs INPUTS --outputs OUTPUTS --template TEMPLATE [-m MODALITY] [-t THREADS] [-s SHRINK_FACTOR]
                          [-r REGISTRATION_TYPE] [--no-bfc NO_BFC] [--keep]
 
 options:

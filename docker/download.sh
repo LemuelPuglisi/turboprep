@@ -1,18 +1,3 @@
-#!/bin/bash
-
-# I've used neurodocker to generate the Dockerfile. The following command was used:
-
-# neurodocker generate docker \
-#     --pkg-manager apt \
-#     --base-image debian:bullseye-slim \
-#     --freesurfer version=7.4.1 \
-#     --ants version=2.4.3 \
-#     --miniconda \
-#         version=latest \
-#         env_name=env_scipy \
-#         env_exists=false \
-#         pip_install=intensity-normalization > Dockerfile.temp
-
 # Create the directory if it doesn't exist
 mkdir -p software
 
@@ -33,12 +18,3 @@ if [ ! -f software/miniconda.sh ]; then
     wget -O software/miniconda.sh \
         https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 fi
-
-# copy the turboprep script
-cp ../turboprep turboprep
-
-# Build the Docker image
-docker build -t lemuelpuglisi/turboprep .
-
-# Remove the turboprep script
-rm turboprep

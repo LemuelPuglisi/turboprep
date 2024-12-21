@@ -97,6 +97,32 @@ ENV OS="Linux" \
     MNI_PERL5LIB="/opt/freesurfer-7.4.1/mni/share/perl5" \
     PERL5LIB="/opt/freesurfer-7.4.1/mni/share/perl5"
 
+# RUN apt-get update -qq \
+#     && apt-get install -y -q --no-install-recommends \
+#            bc \
+#            libgomp1 \
+#            libxmu6 \
+#            libxt6 \
+#            perl \
+#            tcsh \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && mkdir -p /opt/freesurfer-7.4.1 \
+#     && tar -xz -f /opt/freesurfer.tar.gz -C /opt/freesurfer-7.4.1 --owner root --group root --no-same-owner \
+#          --transform='s,freesurfer/,,' \
+#          --exclude='average/mult-comp-cor' \
+#          --exclude='lib/cuda' \
+#          --exclude='lib/qt' \
+#          --exclude='subjects/V1_average' \
+#          --exclude='subjects/bert' \
+#          --exclude='subjects/cvs_avg35' \
+#          --exclude='subjects/cvs_avg35_inMNI152' \
+#          --exclude='subjects/fsaverage3' \
+#          --exclude='subjects/fsaverage4' \
+#          --exclude='subjects/fsaverage5' \
+#          --exclude='subjects/fsaverage6' \
+#          --exclude='subjects/fsaverage_sym' \
+#          --exclude='trctrain'
+
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            bc \
@@ -107,26 +133,14 @@ RUN apt-get update -qq \
            tcsh \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /opt/freesurfer-7.4.1 \
-    && tar -xz -f /opt/freesurfer.tar.gz -C /opt/freesurfer-7.4.1 --owner root --group root --no-same-owner \
-         --transform='s,freesurfer/,,' \
-         --exclude='average/mult-comp-cor' \
-         --exclude='lib/cuda' \
-         --exclude='lib/qt' \
-         --exclude='subjects/V1_average' \
-         --exclude='subjects/bert' \
-         --exclude='subjects/cvs_avg35' \
-         --exclude='subjects/cvs_avg35_inMNI152' \
-         --exclude='subjects/fsaverage3' \
-         --exclude='subjects/fsaverage4' \
-         --exclude='subjects/fsaverage5' \
-         --exclude='subjects/fsaverage6' \
-         --exclude='subjects/fsaverage_sym' \
-         --exclude='trctrain'
+    && tar -xz -f /opt/freesurfer-minified.tar.gz -C /opt/freesurfer-7.4.1 --owner root --group root --no-same-owner \
+         --transform='s,freesurfer_minified/,,' \
+    && rm /opt/freesurfer-minified.tar.gz
 
 #=====================================================================
 # Installing Turboprep!
 #=====================================================================
 
-COPY turboprep /opt/turboprep
+COPY turboprep-cpu /opt/turboprep
 
 ENTRYPOINT ["/opt/turboprep"]

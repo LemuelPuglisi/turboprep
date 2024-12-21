@@ -1,0 +1,172 @@
+#!/bin/bash
+
+GREEN='\033[0;32m'    # Green color
+YELLOW='\033[1;33m'   # Yellow color
+NC='\033[0m'          # No color
+echo -e "${YELLOW}=====[ turboprep ]=====${NC}"
+
+############################################################
+# Default values
+############################################################
+
+modality="t1"
+threads=$(nproc)
+bfc_shrink_factor=3
+registration_type="a"
+keep=false
+no_bias_field_correction=false
+
+############################################################
+# HELP FUNCTION
+############################################################
+
+usage() {
+  echo "Usage: $0 <image_path> <output_folder> <template_path> [OPTIONS]"
+  echo ""
+  echo "Options:"
+  echo "  -t, --threads <threads>               Threads (default: number of cores)"
+  echo "  -s, --shrink-factor                   Bias field correction shrink factor (default: 3), see N4BiasFieldCorrection"
+  echo "  -m, --modality <modality>             Modality {t2,other,md,t1,pd,flair} (default is t1)"
+  echo "  -r, --registration-type <type>        Registration type {t,r,a} (default is 'a' (affine), see antsRegistrationSyNQuick.sh)"
+  echo "  --no-bfc                              Skip bias field correction step"
+  echo "  --keep                                Keep intermediate files"
+  exit 1
+}
+
+############################################################
+# PARSE ARGUMENTS AND OPTIONS
+############################################################
+
+if [ $# -lt 3 ]; then
+  usage
+fi
+
+image_path="$1"
+output_folder="$2"
+template_path="$3"
+
+shift 3
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -m | --modality)
+      modality="$2"
+      shift 2
+      ;;
+    -t | --threads)
+      threads="$2"
+      shift 2
+      ;;
+    -s | --shrink-factor)
+      bfc_shrink_factor="$2"
+      shift 2
+      ;;
+    -r | --registration-type)
+      registration_type="$2"
+      shift 2
+      ;;
+    --keep)
+      keep=true
+      shift
+      ;;
+    --no-bfc)
+      no_bias_field_correction=true
+      shift
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+############################################################
+# INTEGRITY CHECKS
+############################################################
+
+if [ ! -e "$image_path" ]; then
+  echo "input file does not exist"
+  exit
+fi
+
+if [ ! -e "$output_folder" ]; then
+  echo "output dir does not exists"
+  exit
+fi
+
+if [ ! -e "$template_path" ]; then
+  echo "template file does not exists"
+  exit
+fi
+
+############################################################
+# TURBOPREP!
+############################################################
+
+# Now you can use the parsed values in your script
+echo "Image path: $image_path"
+echo "Output folder: $output_folder"
+echo "Template path: $template_path"
+echo "Modality: $modality"
+echo "Threads: $threads"
+echo "Bias field correction rescale: $bfc_shrink_factor"
+echo "Registration type: $registration_type"
+
+START=$(date +%s.%N)
+ITK_GET_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$threads
+
+if [ "$no_bias_field_correction" = false ]; then
+
+  # Step 0: Bias field correction
+  N4BiasFieldCorrection -d 3 \
+                        -i $image_path \
+                        -o $output_folder/corrected.nii.gz \
+                        -s $bfc_shrink_factor \
+                        -v
+
+else
+
+  # Skip bias field correction
+  cp $image_path $output_folder/corrected.nii.gz
+
+fi
+
+# Step 1: brain stripping
+mri_synthstrip -i $output_folder/corrected.nii.gz \
+               -o $output_folder/skullstrip.nii.gz
+
+# Step 2: Affine registration to template space
+antsRegistrationSyNQuick.sh -d 3 \
+                            -f $template_path \
+                            -m $output_folder/skullstrip.nii.gz \
+                            -o $output_folder/turboprep_ \
+                            -n $threads -t $registration_type
+
+# Step 3: Fast semantic segmentation
+mri_synthseg --i $output_folder/turboprep_Warped.nii.gz \
+             --o $output_folder/segm.nii.gz \
+             --fast \
+             --threads $threads \
+             --cpu
+
+# Step 4: Extrapolating brain mask from segmentation
+ThresholdImage 3 $output_folder/segm.nii.gz $output_folder/mask.nii.gz 2 999
+
+# Step 5: Intensity normalization
+ws-normalize -m $output_folder/mask.nii.gz \
+             -o $output_folder/normalized.nii.gz \
+             -mo $modality \
+             $output_folder/turboprep_Warped.nii.gz
+
+if [ "$keep" = false ]; then
+
+    rm $output_folder/corrected.nii.gz
+    rm $output_folder/skullstrip.nii.gz
+    rm $output_folder/turboprep_InverseWarped.nii.gz
+    rm $output_folder/turboprep_Warped.nii.gz
+    mv $output_folder/turboprep_0GenericAffine.mat $output_folder/affine_transf.mat
+
+fi
+
+END=$(date +%s.%N)
+DIFF=$(echo "$END - $START" | bc)
+echo -e "${GREEN}=====[ finish - elapsed time: $DIFF ]=====${NC}"

@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# Check if the Docker image exists locally
+IMAGE="lemuelpuglisi/turboprep:latest"
+if ! docker image inspect "$IMAGE" > /dev/null 2>&1; then
+    echo "Installing turboprep Docker container..."
+    docker pull "$IMAGE"
+fi
+
+
+HELP_MESSAGE="Usage: turboprep-docker <image_path> <output_folder> <template_path> [OPTIONS]
+
+Options:
+  -t, --threads <threads>               Threads (default: number of cores)
+  -s, --shrink-factor                   Bias field correction shrink factor (default: 3), see N4BiasFieldCorrection
+  -m, --modality <modality>             Modality {t2,other,md,t1,pd,flair} (default is t1)
+  -r, --registration-type <type>        Registration type {t,r,a} (default is 'a' (affine), see antsRegistrationSyNQuick.sh)
+  --no-bfc                              Skip bias field correction step
+  --keep                                Keep intermediate files"
+
+
+# Check if the first argument is --help, then show help and exit
+if [ "$1" == "--help" ]; then
+    echo "$HELP_MESSAGE"
+    exit 0
+fi
+
+# Check if the number of arguments is correct
+if [ "$#" -lt 2 ]; then
+    echo "$HELP_MESSAGE"
+    exit 1
+fi
+
+# Assign arguments to variables
+INPUT_PATH=$1
+OUTPUT_DIR=$2
+TEMPLATE_PATH=$3
+
+# Ensure INPUT_PATH, OUTPUT_DIR, and TEMPLATE_PATH are absolute paths
+if [[ "$INPUT_PATH" != /* ]]; then
+    INPUT_PATH="$(realpath "$INPUT_PATH")"
+fi
+
+if [[ "$OUTPUT_DIR" != /* ]]; then
+    OUTPUT_DIR="$(realpath "$OUTPUT_DIR")"
+fi
+
+if [[ "$TEMPLATE_PATH" != /* ]]; then
+    TEMPLATE_PATH="$(realpath "$TEMPLATE_PATH")"
+fi
+
+shift 3  # Shift positional arguments so options can be processed
+
+# Default values for options
+THREADS=$(nproc)  # Default to number of cores
+SHRINK_FACTOR=3
+MODALITY="t1"
+REGISTRATION_TYPE="a"
+NO_BFC=false
+KEEP=false
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -t|--threads)
+            THREADS=$2
+            shift 2
+            ;;
+        -s|--shrink-factor)
+            SHRINK_FACTOR=$2
+            shift 2
+            ;;
+        -m|--modality)
+            MODALITY=$2
+            shift 2
+            ;;
+        -r|--registration-type)
+            REGISTRATION_TYPE=$2
+            shift 2
+            ;;
+        --no-bfc)
+            NO_BFC=true
+            shift
+            ;;
+        --keep)
+            KEEP=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "$HELP_MESSAGE"
+            exit 1
+            ;;
+    esac
+done
+
+# Extract the directory where INPUT_PATH, OUTPUT_DIR, and TEMPLATE_PATH are stored
+INPUT_DIR=$(dirname "$INPUT_PATH")
+TEMPLATE_DIR=$(dirname "$TEMPLATE_PATH")
+
+# Set the container paths
+CONTAINER_INPUT_DIR="/app/input"
+CONTAINER_OUTPUT_DIR="/app/output"
+CONTAINER_TEMPLATE_DIR="/app/template"
+
+# Set the container file paths
+CONTAINER_INPUT_PATH="$CONTAINER_INPUT_DIR/$(basename "$INPUT_PATH")"
+CONTAINER_TEMPLATE_PATH="$CONTAINER_TEMPLATE_DIR/$(basename "$TEMPLATE_PATH")"
+
+# Construct the docker command
+DOCKER_CMD="docker run --rm \
+    -v $INPUT_DIR:$CONTAINER_INPUT_DIR \
+    -v $OUTPUT_DIR:$CONTAINER_OUTPUT_DIR \
+    -v $TEMPLATE_DIR:$CONTAINER_TEMPLATE_DIR \
+    $IMAGE \
+    $CONTAINER_INPUT_PATH $CONTAINER_OUTPUT_DIR $CONTAINER_TEMPLATE_PATH \
+    -t $THREADS \
+    -s $SHRINK_FACTOR \
+    -m $MODALITY \
+    -r $REGISTRATION_TYPE"
+
+# Add optional flags
+if [ "$NO_BFC" = true ]; then
+    DOCKER_CMD="$DOCKER_CMD --no-bfc"
+fi
+if [ "$KEEP" = true ]; then
+    DOCKER_CMD="$DOCKER_CMD --keep"
+fi
+
+# # Run the docker command
+eval "$DOCKER_CMD"

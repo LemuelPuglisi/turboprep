@@ -1,9 +1,28 @@
 # ⚡ Turboprep
-MRI preprocessing / segmentation in < 30s.
+![pipeline](docs/turboprep.png)
 
-> **Update**: adding skull-stripping prior to affine registration to external template for better registration results.
+`turboprep` is a preprocessing script for structural MRIs built on top of awesome open-source tools (the full pipeline is described [here](#pipeline-description)). Given an input MRI and a reference space (e.g., the [MNI152 template](https://github.com/Washington-University/HCPpipelines/blob/master/global/templates/MNI152_T1_1mm_brain.nii.gz)), turboprep outputs an aligned, skull-stripped, and intensity-normalized MRI, along with its segmentation (using [SynthSeg](https://surfer.nmr.mgh.harvard.edu/fswiki/SynthSeg)) and brain mask. 
 
-## Installation
+
+
+## 🆕 Run with Docker!
+
+Installing FreeSurfer and ANTs too much hassle? Run `turboprep` with Docker! First, make sure you have [Docker installed](https://docs.docker.com/engine/install/), then run the `turboprep-docker` script:
+
+```bash
+./turboprep-docker /path/to/input/file.nii.gz \
+                   /path/to/output/directory \
+                   /path/to/template/file.nii.gz \
+                   [OPTIONS]
+```
+
+On the first run, this will download and install the `lemuelpuglisi/turboprep` Docker image (~16GB of disk space required). 
+
+The script runs `turboprep` using the `cpu` to simplify setup and avoid additional steps (e.g., installing the NVIDIA Docker runtime). Despite this, it still achieves a runtime comparable to the GPU version.
+
+
+
+## Classic installation
 
 `turboprep` script requires the following softwares to be installed:
 

@@ -217,7 +217,7 @@ if __name__ == '__main__':
         if not os.path.exists(norm_path):
             try:
                 ws_norm = WhiteStripeNormalize()
-                normalized_arr = ws_norm(reg_arr, mask_arr, modality=Modality.T1)
+                normalized_arr = ws_norm(reg_arr, mask_arr, modality=Modality.from_string(modality))
                 normalized = nib.Nifti1Image(normalized_arr, reg.affine, reg.header)
                 normalized.to_filename(norm_path)
             except:

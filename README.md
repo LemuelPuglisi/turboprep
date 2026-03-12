@@ -3,7 +3,17 @@
 
 `turboprep` is a preprocessing script for structural MRIs built on top of awesome open-source tools (the full pipeline is described [here](#pipeline-description)). Given an input MRI and a reference space (e.g., the [MNI152 template](https://github.com/Washington-University/HCPpipelines/blob/master/global/templates/MNI152_T1_1mm_brain.nii.gz)), turboprep outputs an aligned, skull-stripped, and intensity-normalized MRI, along with its segmentation (using [SynthSeg](https://surfer.nmr.mgh.harvard.edu/fswiki/SynthSeg)) and brain mask. 
 
+## Table of Contents
 
+- [⚡ Turboprep](#-turboprep)
+- [🆕 Run with Docker!](#-run-with-docker)
+- [Classic installation](#classic-installation)
+- [Usage (one input)](#usage-one-input)
+- [Usage (multiple inputs)](#usage-multiple-inputs)
+- [Pipeline description](#pipeline-description)
+- [Registration alternatives](#registration-alternatives)
+- [Bibliography](#bibliography)
+- [Citing](#citing)
 
 ## 🆕 Run with Docker!
 
@@ -130,4 +140,17 @@ Both algorithms are great, but the overhead of loading the model make their runn
 [6] Hoffmann, M., et al. "SynthMorph: Learning image registration without images." IEEE Trans. Med. Imaging (2021).
 
 [7] Hoopes, Andrew, et al. "SynthStrip: Skull-stripping for any brain image." NeuroImage 260 (2022): 119474.
+```
+
+## Citing
+
+I noticed that some researchers have started citing this software, so it may be useful to have a common reference:
+
+```bibtex
+@software{puglisi2026turboprep,
+  author = {Puglisi, Lemuel},
+  title = {Turboprep},
+  year = {2026},
+  url = {https://github.com/LemuelPuglisi/turboprep}
+}
 ```

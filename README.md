@@ -147,10 +147,10 @@ Both algorithms are great, but the overhead of loading the model make their runn
 I noticed that some researchers have started citing this software, so it may be useful to have a common reference:
 
 ```bibtex
-@software{puglisi2026turboprep,
+@software{puglisi2024turboprep,
   author = {Puglisi, Lemuel},
   title = {Turboprep},
-  year = {2026},
+  year = {2024},
   url = {https://github.com/LemuelPuglisi/turboprep}
 }
 ```
